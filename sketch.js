@@ -6,6 +6,8 @@ var montanha1,montanha1Img,montanha2,montanha2Img,montanha3,montanha3Img;
 var goblin,goblinRunning,goblinAttacking,goblinArqueiro,goblinArqueiroRunning,goblinArqueiroAttacking
 var goblinsGroup;
 var soloInvisivel;
+var atacando = false;
+var tempoDeAtaque = 0;
 function preload () {
   playerRunning = loadAnimation("./assets/sprite_0.png",
    "./assets/sprite_1.png",
@@ -53,6 +55,7 @@ function setup() {
   montanha3.velocityX = -1;
   soloInvisivel = createSprite(755,400,1510,100);
   soloInvisivel.visible = false;
+  goblinsGroup = createGroup();
   player = createSprite(200,200,50,50);
   player.addAnimation("running",playerRunning);
   player.addAnimation("jumping",playerJumping);
@@ -68,24 +71,44 @@ function draw() {
   background("#081d31");
   player.velocityY = player.velocityY + 0.8
   player.collide(chao);
-  if(keyDown("space") && player.y >= 345){
-    player.changeAnimation("jumping");
-    player.velocityY = -16;
-    player.scale = 1;
-  } else if(keyDown("x")){
-    player.changeAnimation("attacking");
-    player.scale = 1.8;
-    console.log("x")
-  } 
-  if(chao.x < -1400){
+   if(chao.x < -1400){
     chao.x = 755
   }
-  if(player.y > 356){
+  //ativar ataque
+  if(keyDown("x") && atacando == false){
+    atacando = true; 
+    tempoDeAtaque = 10;
+    console.log("x");
+  }
+  if(atacando){
+    player.changeAnimation("attacking")
+    player.scale = 1.6
+    tempoDeAtaque = tempoDeAtaque -1;
+    player.overlap(goblinsGroup,matarGoblin());
+    if(tempoDeAtaque <= 0){
+      atacando = false;
+      player.scale = 1;
+    }
+
+  }
+ else if(keyDown("space") && player.y > 400){
+    player.velocityY = -17;
+    player.changeAnimation("jumping");
+    player.scale = 1.2;
+    console.log("jumping");
+    
+  }
+  // se estiver no chão, muda para a animação de corrida
+  else if(player.y > 400){
     player.changeAnimation("running");
     player.scale = 1;
-  } else{
+  console.log("running")
+  } else {
     player.changeAnimation("jumping");
-  }
+    player.scale = 1.2;
+  console.log("jumping");
+  } 
+    
   gerarMontanha();
 
   gerarGoblin()
@@ -125,5 +148,9 @@ function draw() {
     enemy.velocityX = -3
     enemy.scale = 0.4
     enemy.lifetime = 1500;
+    goblinsGroup.add(enemy);
    }
+  }
+  function matarGoblin(player,enemy){
+   enemy.destroy();
   }
