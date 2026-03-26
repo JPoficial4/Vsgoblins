@@ -8,10 +8,10 @@ var goblinsGroup;
 var soloInvisivel;
 var atacando = false;
 var tempoDeAtaque = 0;
-var gameOver = false;
+var gameOverState = false;
 var flechaImg;
 var flechaGrupo;
-var gameOverImg;
+var gameOver,gameOverImg;
 function preload () {
   playerRunning = loadAnimation("./assets/sprite_0.png",
    "./assets/sprite_1.png",
@@ -120,7 +120,7 @@ function draw() {
     player.scale = 1.2;
   console.log("jumping");
   } 
-  if(!gameOver){
+  if(!gameOverState){
    controlarInimigos(); 
   }
   
@@ -211,7 +211,7 @@ function draw() {
       }
     }
       if(enemy.isTouching(player)){
-        gameOver = true
+        gameOverState = true
         gameOver.visible = true
       }
   }
