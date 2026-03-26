@@ -8,6 +8,10 @@ var goblinsGroup;
 var soloInvisivel;
 var atacando = false;
 var tempoDeAtaque = 0;
+var gameOver = false;
+var flechaImg;
+var flechaGrupo;
+var gameOverImg;
 function preload () {
   playerRunning = loadAnimation("./assets/sprite_0.png",
    "./assets/sprite_1.png",
@@ -40,6 +44,9 @@ function preload () {
    montanha2Img = loadImage("./assets/montanha2.png")
    montanha1Img = loadImage("./assets/montanha1.png")
    chaoImg = loadImage("./assets/chao.png")
+   flechaImg = loadImage("./assets/flecha.png")
+   gameOverImg = loadImage("./assets/gameOver.png")
+   
 }
 
 function setup() {
@@ -53,9 +60,14 @@ function setup() {
   montanha1.velocityX = -1;
   montanha2.velocityX = -1;
   montanha3.velocityX = -1;
+  gameOver = createSprite(755,355)
+  gameOver.addImage(gameOverImg);
+  gameOver.scale = 1.5
+  gameOver.visible = false;
   soloInvisivel = createSprite(755,400,1510,100);
   soloInvisivel.visible = false;
   goblinsGroup = createGroup();
+  flechaGrupo = createGroup();
   player = createSprite(200,200,50,50);
   player.addAnimation("running",playerRunning);
   player.addAnimation("jumping",playerJumping);
@@ -84,7 +96,7 @@ function draw() {
     player.changeAnimation("attacking")
     player.scale = 1.6
     tempoDeAtaque = tempoDeAtaque -1;
-    player.overlap(goblinsGroup,matarGoblin());
+    player.overlap(goblinsGroup,matarGoblin);
     if(tempoDeAtaque <= 0){
       atacando = false;
       player.scale = 1;
@@ -108,12 +120,18 @@ function draw() {
     player.scale = 1.2;
   console.log("jumping");
   } 
-    
+  if(!gameOver){
+   controlarInimigos(); 
+  }
+  
+
   gerarMontanha();
 
   gerarGoblin()
 
   drawSprites();
+
+ 
 }
   function gerarMontanha(){
    if(frameCount % 600  === 0){
@@ -139,12 +157,18 @@ function draw() {
     var tipo =  Math.round(random(1,2))
     var enemy = createSprite(1750,430);
     switch (tipo){
-      case 1: enemy.addAnimation("goblinRunning",goblinRunning)
+      case 1: enemy.addAnimation("Running",goblinRunning);
+        enemy.addAnimation("Attacking",goblinAttacking);
+        enemy.tipo = "goblin"
         break;
-      case 2: enemy.addAnimation("goblinArqueiroRunning",goblinArqueiroRunning)
+      case 2: enemy.addAnimation("Running",goblinArqueiroRunning);
+      enemy.addAnimation("Attacking",goblinArqueiroAttacking)
+      enemy.tipo = "arqueiro";
       enemy.mirrorX(-1);
         break;
+
     }
+    enemy.changeAnimation("Running")
     enemy.velocityX = -3
     enemy.scale = 0.4
     enemy.lifetime = 1500;
@@ -154,3 +178,41 @@ function draw() {
   function matarGoblin(player,enemy){
    enemy.destroy();
   }
+  function atirarFlecha(enemy){
+    if(frameCount %200 === 0){
+      var flecha = createSprite(enemy.x - 20,enemy.y);
+      flecha.mirrorX(-1)
+      flecha.addImage(flechaImg);
+      flecha.velocityX = -10;
+      flechaGrupo.add(flecha);  
+    }
+   
+  }
+  function controlarInimigos(enemy){
+    for(var i = 0; i < goblinsGroup.length; i++) {
+      var enemy = goblinsGroup[i];
+      // distância entre player e inimigo 
+      var distancia = enemy.x - player.x ;
+      var distanciaAtaque;
+      // definir distância por tipo
+      if(enemy.tipo === "arqueiro"){
+        distanciaAtaque = 1000;
+        atirarFlecha(enemy);
+      }
+      else if(enemy.tipo === "goblin") {
+        distanciaAtaque = 120;
+      }
+      // se perto e player não estiver atacando
+      if( distancia < distanciaAtaque && !atacando){
+        enemy.changeAnimation("Attacking");   
+      }
+      else{
+        enemy.changeAnimation("Running");
+      }
+    }
+      if(enemy.isTouching(player)){
+        gameOver = true
+        gameOver.visible = true
+      }
+  }
+  
