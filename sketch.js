@@ -12,6 +12,7 @@ var gameOverState = false;
 var flechaImg;
 var flechaGrupo;
 var gameOver,gameOverImg;
+var score = 0;
 function preload () {
   playerRunning = loadAnimation("./assets/sprite_0.png",
    "./assets/sprite_1.png",
@@ -123,15 +124,28 @@ function draw() {
   if(!gameOverState){
    controlarInimigos(); 
   }
-  
+
+  if(gameOverState){
+    goblinsGroup.setVelocityXEach(0);
+    flechaGrupo.setVelocityXEach(0);
+    goblinsGroup.setLifetimeEach(-1);
+    flechaGrupo.setLifetimeEach(-1);
+    player.visible = false;
+    chao.velocityX = 0;
+    if(mousePressedOver(gameOver)){
+      reiniciarJogo();
+    }
+  }
 
   gerarMontanha();
 
   gerarGoblin()
 
   drawSprites();
-
- 
+   fill("white");
+   textSize(24);
+   text("Score " + score,20,30)
+  
 }
   function gerarMontanha(){
    if(frameCount % 600  === 0){
@@ -177,9 +191,10 @@ function draw() {
   }
   function matarGoblin(player,enemy){
    enemy.destroy();
+   score = score + 1;
   }
   function atirarFlecha(enemy){
-    if(frameCount %200 === 0){
+    if(frameCount %150 === 0){
       var flecha = createSprite(enemy.x - 20,enemy.y);
       flecha.mirrorX(-1)
       flecha.addImage(flechaImg);
@@ -194,25 +209,54 @@ function draw() {
       // distância entre player e inimigo 
       var distancia = enemy.x - player.x ;
       var distanciaAtaque;
-      // definir distância por tipo
+      // definir distância por tipo 
+    
       if(enemy.tipo === "arqueiro"){
         distanciaAtaque = 1000;
-        atirarFlecha(enemy);
+        if(distancia < distanciaAtaque){
+        enemy.changeAnimation("Attacking")  
+        atirarFlecha(enemy);  
+        }else{
+          enemy.changeAnimation("Running")
+        }
+        
       }
       else if(enemy.tipo === "goblin") {
-        distanciaAtaque = 120;
+        distanciaAtaque = 300;
+        if(distancia < distanciaAtaque){
+          enemy.changeAnimation("Attacking")
+        }else{
+          enemy.changeAnimation("Running")
+        }
+        
       }
-      // se perto e player não estiver atacando
-      if( distancia < distanciaAtaque && !atacando){
-        enemy.changeAnimation("Attacking");   
+      
+        if(enemy.isTouching(player) && !atacando){
+        gameOverState = true;
+        gameOver.visible = true;
       }
-      else{
-        enemy.changeAnimation("Running");
-      }
+        if(flechaGrupo.isTouching(player)){
+          gameOverState = true;
+          gameOver.visible = true;
+        }
     }
-      if(enemy.isTouching(player)){
-        gameOverState = true
-        gameOver.visible = true
-      }
+   
+     
   }
-  
+  function reiniciarJogo(){
+    gameOverState = false;
+    gameOver.visible = false;
+    goblinsGroup.destroyEach();
+    flechaGrupo.destroyEach();
+
+    player.visible = true;
+    player.x = 200;
+    player.y = 200;
+
+  player.changeAnimation("running")
+  atacando = false;
+  tempoDeAtaque = 0;
+  chao.velocityX = -3;
+  score = 0;
+  } 
+   
